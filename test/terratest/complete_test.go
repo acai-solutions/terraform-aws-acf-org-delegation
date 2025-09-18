@@ -11,7 +11,7 @@ func TestExampleComplete(t *testing.T) {
 	// retryable errors in terraform testing.
 	t.Log("Starting Sample Module test")
 
-	terraformDir := "../examples/complete"
+	terraformDir := "../../examples/complete"
 
 	// Create IAM Role
 	terraformPreparation := &terraform.Options{
