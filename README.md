@@ -150,8 +150,8 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_aws_organizations_resource_policy"></a> [aws\_organizations\_resource\_policy](#input\_aws\_organizations\_resource\_policy) | JSON of the AWS Organizations Delegation. Ensure this is only specified in one instance of this module | <pre>object({<br>    content_as_json = string<br>    resource_tags   = optional(map(string))<br>  })</pre> | `null` | no |
-| <a name="input_delegations"></a> [delegations](#input\_delegations) | List of delegations specifying the target account ID and service principal for AWS Organizations Delegated Administrators. | <pre>list(object({<br>    service_principal : string # https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services_list.html<br>    target_account_id : string<br>    aggregation_region : optional(string)<br>    additional_settings = optional(map(string))<br>  }))</pre> | `[]` | no |
+| <a name="input_aws_organizations_resource_policy"></a> [aws\_organizations\_resource\_policy](#input\_aws\_organizations\_resource\_policy) | JSON of the AWS Organizations Delegation. Ensure this is only specified in one instance of this module | <pre>object({<br/>    content_as_json = string<br/>    resource_tags   = optional(map(string))<br/>  })</pre> | `null` | no |
+| <a name="input_delegations"></a> [delegations](#input\_delegations) | List of delegations specifying the target account ID and service principal for AWS Organizations Delegated Administrators. | <pre>list(object({<br/>    service_principal : string # https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services_list.html<br/>    target_account_id : string<br/>    aggregation_region : optional(string)<br/>    additional_settings = optional(map(string))<br/>  }))</pre> | `[]` | no |
 | <a name="input_primary_aws_region"></a> [primary\_aws\_region](#input\_primary\_aws\_region) | Explicitly decide if this is the primary AWS Regin. May only be done for one region. | `bool` | `false` | no |
 
 ## Outputs
