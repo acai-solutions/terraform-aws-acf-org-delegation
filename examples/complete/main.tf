@@ -104,6 +104,11 @@ locals {
       regions           = [local.primary_aws_region]
       service_principal = "member.org.stacksets.cloudformation.amazonaws.com"
       target_account_id = "590183833356" # core_logging
+    },
+    {
+      regions           = [local.primary_aws_region]
+      service_principal = "cloudwatch.amazonaws.com"
+      target_account_id = "590183833356" # core_logging
     }
   ]
 }
