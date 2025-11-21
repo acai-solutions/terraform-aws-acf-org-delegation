@@ -144,6 +144,7 @@ No modules.
 | Name | Type |
 |------|------|
 | [aws_auditmanager_organization_admin_account_registration.auditmanager](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/auditmanager_organization_admin_account_registration) | resource |
+| [aws_cloudtrail_organization_delegated_admin_account.cloudtrail](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudtrail_organization_delegated_admin_account) | resource |
 | [aws_config_aggregate_authorization.config_delegation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/config_aggregate_authorization) | resource |
 | [aws_detective_organization_admin_account.detective](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/detective_organization_admin_account) | resource |
 | [aws_fms_admin_account.fms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/fms_admin_account) | resource |
