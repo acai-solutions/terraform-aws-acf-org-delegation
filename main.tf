@@ -13,12 +13,12 @@
 # ¦ REQUIREMENTS
 # ---------------------------------------------------------------------------------------------------------------------
 terraform {
-  required_version = ">= 1.3.10"
+  required_version = ">= 1.5.7"
 
   required_providers {
     aws = {
       source                = "hashicorp/aws"
-      version               = ">= 5.30"
+      version               = ">= 5.100"
       configuration_aliases = []
     }
   }
@@ -109,9 +109,13 @@ locals {
 resource "aws_config_aggregate_authorization" "config_delegation" {
   count = local.config_delegation ? 1 : 0
 
-  account_id            = local.config_admin_account_id
-  authorized_aws_region = local.config_aggregation_region
-  depends_on            = [aws_organizations_delegated_administrator.delegations]
+  account_id = local.config_admin_account_id
+  region     = local.config_aggregation_region
+
+  # from aws-provider 6.0 onwards, authorized_aws_region should be specified
+  #authorized_aws_region = local.config_aggregation_region
+
+  depends_on = [aws_organizations_delegated_administrator.delegations]
 }
 
 
