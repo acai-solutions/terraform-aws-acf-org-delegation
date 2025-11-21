@@ -64,11 +64,7 @@ $${resource_tags_block}
                   - "cloudtrail:RegisterOrganizationDelegatedAdmin"
                   - "cloudtrail:DeregisterOrganizationDelegatedAdmin"
                   - "cloudtrail:ListOrganizationDelegatedAdminAccounts"
-                Resource: "*"
-              - Effect: Allow
-                Action:
+                  - "iam:GetRole"
                   - "iam:CreateServiceLinkedRole"
-                Resource: "arn:aws:iam::*:role/aws-service-role/cloudtrail.amazonaws.com/AWSServiceRoleForCloudTrail"
-                Condition:
-                  StringLike:
-                    "iam:AWSServiceName": "cloudtrail.amazonaws.com"
+                Resource: "*"
+

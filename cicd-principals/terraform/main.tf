@@ -103,7 +103,8 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "cloudtrail:RegisterOrganizationDelegatedAdmin",
       "cloudtrail:DeregisterOrganizationDelegatedAdmin",
       "cloudtrail:ListOrganizationDelegatedAdminAccounts",
-
+      "iam:GetRole",
+      "iam:CreateServiceLinkedRole"
     ]
     resources = ["*"]
   }
