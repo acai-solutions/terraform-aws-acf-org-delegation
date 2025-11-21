@@ -69,7 +69,6 @@ data "aws_iam_policy_document" "org_delegation_policy" {
     actions = [
       "organizations:TagResource",
       "organizations:UntagResource",
-
       "organizations:List*",
       "organizations:Describe*",
       "organizations:PutResourcePolicy",
@@ -78,6 +77,7 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "organizations:DeregisterDelegatedAdministrator",
       "organizations:EnableAWSServiceAccess",
 
+      # --- Security Hub ---
       "securityhub:DescribeHub",
       "securityhub:ListOrganizationAdminAccounts",
       "securityhub:EnableSecurityHub",
@@ -86,6 +86,7 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "securityhub:EnableOrganizationAdminAccount",
       "securityhub:DisableOrganizationAdminAccount",
 
+      # --- GuardDuty ---
       "guardduty:CreateDetector",
       "guardduty:GetDetector",
       "guardduty:DeleteDetector",
@@ -93,9 +94,16 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "guardduty:EnableOrganizationAdminAccount",
       "guardduty:DisableOrganizationAdminAccount",
 
+      # --- Macie ---
       "macie2:EnableOrganizationAdminAccount",
       "macie2:ListOrganizationAdminAccounts",
-      "macie2:DisableOrganizationAdminAccount"
+      "macie2:DisableOrganizationAdminAccount",
+
+      # --- CloudTrail (added) ---
+      "cloudtrail:RegisterOrganizationDelegatedAdmin",
+      "cloudtrail:DeregisterOrganizationDelegatedAdmin",
+      "cloudtrail:ListOrganizationDelegatedAdminAccounts",
+
     ]
     resources = ["*"]
   }

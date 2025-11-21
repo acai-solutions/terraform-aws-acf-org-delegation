@@ -14,9 +14,13 @@
 ![checkov-shield]
 
 <!-- BEGIN_ACAI_DOCS -->
-
 <!-- DESCRIPTION -->
 [Terraform][terraform-url] module to manage AWS Organization delegation.
+
+This module is designed to:
+
+- Delegate AWS Services to a target accounts.
+- Support multi-regional delegation.
 
 <!-- FEATURES -->
 ## Features
@@ -60,14 +64,21 @@ locals {
 }
 
 module "preprocess_data" {
-  source = "../../modules/preprocess-data"
+  source  = "app.terraform.io/acai-solutions/org-delegation/aws//modules/preprocess-data"
+  version = "~> 1.0"
 
   primary_aws_region = local.primary_aws_region
   delegations        = local.delegations
 }
+```
+
+Provide the above specifications to the ACF Module (multiple module calls for different regions):
+
+```hcl
 
 module "example_euc1" {
-  source = "../../"
+  source  = "app.terraform.io/acai-solutions/org-delegation/aws"
+  version = "~> 1.0"
 
   primary_aws_region = module.preprocess_data.is_primary_region["eu-central-1"]
   delegations        = module.preprocess_data.delegations_by_region["eu-central-1"]
@@ -79,7 +90,8 @@ module "example_euc1" {
 
 
 module "example_use1" {
-  source = "../../"
+  source  = "app.terraform.io/acai-solutions/org-delegation/aws"
+  version = "~> 1.0"
 
   primary_aws_region = module.preprocess_data.is_primary_region["us-east-1"]
   delegations        = module.preprocess_data.delegations_by_region["us-east-1"]
@@ -93,7 +105,8 @@ module "example_use1" {
 }
 
 module "example_use2" {
-  source = "../../"
+  source  = "app.terraform.io/acai-solutions/org-delegation/aws"
+  version = "~> 1.0"
 
   primary_aws_region = module.preprocess_data.is_primary_region["us-east-2"]
   delegations        = module.preprocess_data.delegations_by_region["us-east-2"]
@@ -176,11 +189,11 @@ See [LICENSE][license-url] for full details.
 [acai-shield]: https://img.shields.io/badge/maintained_by-acai.gmbh-CB224B?style=flat
 [acai-docs-shield]: https://img.shields.io/badge/documentation-docs.acai.gmbh-CB224B?style=flat
 [acai-url]: https://acai.gmbh
-[acai-docs-url]: https://docs.acai.gmbh
+[acai-docs-url]: https://docs.acai.gmbh/solution-acf/10_overview/
 [module-version-shield]: https://img.shields.io/badge/module_version-1.1.0-CB224B?style=flat
 [module-release-url]: https://github.com/acai-solutions/terraform-aws-acf-org-delegation/releases
 [terraform-version-shield]: https://img.shields.io/badge/tf-%3E%3D1.3.10-blue.svg?style=flat&color=blueviolet
 [trivy-shield]: https://img.shields.io/badge/trivy-passed-green
 [checkov-shield]: https://img.shields.io/badge/checkov-passed-green
-[license-url]: https://github.com/acai-solutions/terraform-aws-acf-org-delegation/tree/main/LICENSE.md
+[license-url]: ./LICENSE.md
 [terraform-url]: https://www.terraform.io
