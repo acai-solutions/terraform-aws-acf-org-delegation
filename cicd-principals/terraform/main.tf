@@ -55,7 +55,9 @@ resource "aws_iam_role_policy" "org_delegation" {
 #tfsec:ignore:AVD-AWS-0057
 data "aws_iam_policy_document" "org_delegation_policy" {
   #checkov:skip=CKV_AWS_111 
-  #checkov:skip=CKV_AWS_356 
+  #checkov:skip=CKV_AWS_356
+  #checkov:skip=CKV_AWS_109 : CreateServiceLinkedRole is required to register CloudTrail as delegated admin
+  # this did not work: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create-service-linked-role.html?utm_source=chatgpt.com
   statement {
     effect = "Allow"
     actions = [
@@ -69,7 +71,6 @@ data "aws_iam_policy_document" "org_delegation_policy" {
     actions = [
       "organizations:TagResource",
       "organizations:UntagResource",
-
       "organizations:List*",
       "organizations:Describe*",
       "organizations:PutResourcePolicy",
@@ -78,6 +79,7 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "organizations:DeregisterDelegatedAdministrator",
       "organizations:EnableAWSServiceAccess",
 
+      # --- Security Hub ---
       "securityhub:DescribeHub",
       "securityhub:ListOrganizationAdminAccounts",
       "securityhub:EnableSecurityHub",
@@ -86,6 +88,7 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "securityhub:EnableOrganizationAdminAccount",
       "securityhub:DisableOrganizationAdminAccount",
 
+      # --- GuardDuty ---
       "guardduty:CreateDetector",
       "guardduty:GetDetector",
       "guardduty:DeleteDetector",
@@ -93,9 +96,17 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "guardduty:EnableOrganizationAdminAccount",
       "guardduty:DisableOrganizationAdminAccount",
 
+      # --- Macie ---
       "macie2:EnableOrganizationAdminAccount",
       "macie2:ListOrganizationAdminAccounts",
-      "macie2:DisableOrganizationAdminAccount"
+      "macie2:DisableOrganizationAdminAccount",
+
+      # --- CloudTrail (added) ---
+      "cloudtrail:RegisterOrganizationDelegatedAdmin",
+      "cloudtrail:DeregisterOrganizationDelegatedAdmin",
+      "cloudtrail:ListOrganizationDelegatedAdminAccounts",
+      "iam:GetRole",
+      "iam:CreateServiceLinkedRole"
     ]
     resources = ["*"]
   }
