@@ -107,7 +107,7 @@ locals {
     },
     {
       regions           = [local.primary_aws_region]
-      service_principal = "cloudwatch.amazonaws.com"
+      service_principal = "cloudtrail.amazonaws.com"
       target_account_id = "590183833356" # core_logging
     }
   ]
