@@ -56,7 +56,7 @@ resource "aws_iam_role_policy" "org_delegation" {
 data "aws_iam_policy_document" "org_delegation_policy" {
   #checkov:skip=CKV_AWS_111 
   #checkov:skip=CKV_AWS_356
-  #checkov:CKV_AWS_109 : CreateServiceLinkedRole is required to register CloudTrail as delegated admin
+  #checkov:skip=CKV_AWS_109 : CreateServiceLinkedRole is required to register CloudTrail as delegated admin
   # this did not work: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create-service-linked-role.html?utm_source=chatgpt.com
   statement {
     effect = "Allow"
