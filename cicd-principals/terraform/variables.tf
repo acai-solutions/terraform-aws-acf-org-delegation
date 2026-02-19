@@ -24,8 +24,8 @@ variable "iam_role_settings" {
   }
 
   validation {
-    condition     = var.iam_role_settings.permissions_boundary_arn == null ? true : can(regex("^arn:aws:iam::[0-9]{12}:policy/.+$", var.iam_role_settings.permissions_boundary_arn))
-    error_message = "Permissions boundary ARN must be a valid IAM policy ARN, starting with 'arn:aws:iam::', followed by a 12-digit AWS account number, and the policy name."
+    condition     = var.iam_role_settings.permissions_boundary_arn == null ? true : can(regex("^arn:aws(-[a-z]+)*:iam::[0-9]{12}:policy/.+$", var.iam_role_settings.permissions_boundary_arn))
+    error_message = "Permissions boundary ARN must be a valid IAM policy ARN, starting with 'arn:aws(-[a-z]+)*:iam::', followed by a 12-digit AWS account number, and the policy name."
   }
 }
 

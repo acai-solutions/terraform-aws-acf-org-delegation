@@ -34,8 +34,7 @@ module "create_provisioner" {
   iam_role_settings = {
     name = "cicd_provisioner"
     aws_trustee_arns = [
-      "arn:aws:iam::471112796356:root",
-      "arn:aws:iam::471112796356:user/tfc_provisioner"
+      "arn:${var.aws_partition}:iam::${var.account_ids.org_mgmt}:root"
     ]
   }
   providers = {
@@ -78,32 +77,32 @@ locals {
     {
       regions           = ["us-east-1"]
       service_principal = "cloudtrail.amazonaws.com"
-      target_account_id = "992382728088" # core_security
+      target_account_id = var.account_ids.core_security
     },
     {
       regions           = local.default_regions
       service_principal = "guardduty.amazonaws.com"
-      target_account_id = "992382728088" # core_security      
+      target_account_id = var.account_ids.core_security
     },
     {
       regions           = local.default_regions
       service_principal = "securityhub.amazonaws.com"
-      target_account_id = "992382728088" # core_security
+      target_account_id = var.account_ids.core_security
     },
     {
       regions           = [local.primary_aws_region]
       service_principal = "backup.amazonaws.com"
-      target_account_id = "992382728088" # core_security
+      target_account_id = var.account_ids.core_security
     },
     {
       regions           = [local.primary_aws_region]
       service_principal = "member.org.stacksets.cloudformation.amazonaws.com"
-      target_account_id = "992382728088" # core_security
+      target_account_id = var.account_ids.core_security
     },
     {
       regions           = [local.primary_aws_region]
       service_principal = "member.org.stacksets.cloudformation.amazonaws.com"
-      target_account_id = "590183833356" # core_logging
+      target_account_id = var.account_ids.core_logging
     }
   ]
 }
@@ -139,7 +138,7 @@ module "example_use1" {
           "Sid" : "AllowOrganizationsRead",
           "Effect" : "Allow",
           "Principal" : {
-            "AWS" : "arn:aws:iam::590183833356:root"
+            "AWS" : "arn:${var.aws_partition}:iam::${var.account_ids.core_logging}:root"
           },
           "Action" : [
             "organizations:Describe*",
@@ -151,7 +150,7 @@ module "example_use1" {
           "Sid" : "AllowBackupPoliciesCreation",
           "Effect" : "Allow",
           "Principal" : {
-            "AWS" : "arn:aws:iam::590183833356:root"
+            "AWS" : "arn:${var.aws_partition}:iam::${var.account_ids.core_logging}:root"
           },
           "Action" : "organizations:CreatePolicy",
           "Resource" : "*",

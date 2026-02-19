@@ -24,6 +24,7 @@ terraform {
   }
 }
 
+data "aws_partition" "current" {}
 
 resource "aws_iam_role" "cicd_principal" {
   name                 = var.iam_role_settings.name
@@ -64,7 +65,7 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "organizations:TagResource",
       "organizations:UntagResource"
     ]
-    resources = ["arn:aws:organizations::*:resourcepolicy/*/rp-*"]
+    resources = ["arn:${data.aws_partition.current.partition}:organizations::*:resourcepolicy/*/rp-*"]
   }
   statement {
     effect = "Allow"

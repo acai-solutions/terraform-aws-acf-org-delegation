@@ -11,8 +11,10 @@ on:
 
 jobs:
   tf_module_checks:
-    uses: acai-solutions/github-workflows/.github/workflows/checks-tf-module.yml@main
+    uses: acai-solutions/github-workflows/.github/workflows/checks-tf-module.yml@aws_esc
     if: ${{ github.event_name == 'pull_request' }}
+    with:
+      test_beds: '["AWS", "AWS_ESC"]'    
     secrets: inherit
 
     
