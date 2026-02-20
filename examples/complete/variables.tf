@@ -37,11 +37,3 @@ variable "iam_role_name" {
   description = "IAM role name to assume in each account."
   default     = "OrganizationAccountAccessRole"
 }
-
-variable "tf_state_bucket" {
-  type = object({
-    s3_bucket_name      = string
-    dynamodb_table_name = string
-  })
-  description = "Terraform state bucket configuration."
-}

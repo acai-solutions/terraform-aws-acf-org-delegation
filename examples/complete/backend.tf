@@ -12,12 +12,8 @@
 # ---------------------------------------------------------------------------------------------------------------------
 # ¦ BACKEND
 # ---------------------------------------------------------------------------------------------------------------------
+# Backend configuration is provided via partial configuration (-backend-config)
+# by Terratest (backend.json) or CLI arguments.
 terraform {
-  backend "s3" {
-    bucket         = var.tf_state_bucket.s3_bucket_name
-    key            = "terraform.tfstate"
-    region         = var.aws_region
-    dynamodb_table = var.tf_state_bucket.dynamodb_table_name
-    encrypt        = true
-  }
+  backend "s3" {}
 }
