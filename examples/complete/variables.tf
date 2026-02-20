@@ -32,6 +32,12 @@ variable "aws_partition" {
   default     = "aws"
 }
 
+variable "aws_endpoint_domain" {
+  type        = string
+  description = "AWS endpoint domain to use for all providers (e.g. 'amazonaws.com' or 'amazonaws.com.cn')."
+  default     = "amazonaws.com"
+}
+
 variable "iam_role_name" {
   type        = string
   description = "IAM role name to assume in each account."
