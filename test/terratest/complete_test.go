@@ -34,6 +34,7 @@ func TestExampleComplete(t *testing.T) {
 		NoColor:       false,
 		Lock:          true,
 		BackendConfig: backendConfig,
+		Reconfigure:   true,
 		Targets: []string{
 			"module.create_provisioner",
 		},
@@ -46,6 +47,7 @@ func TestExampleComplete(t *testing.T) {
 		NoColor:       false,
 		Lock:          true,
 		BackendConfig: backendConfig,
+		Reconfigure:   true,
 	}
 	defer terraform.Destroy(t, terraformModule)
 	terraform.InitAndApply(t, terraformModule)
