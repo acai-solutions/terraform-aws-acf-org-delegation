@@ -1,23 +1,39 @@
 package test
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
 )
 
+func loadBackendConfig(t *testing.T) map[string]interface{} {
+	backendConfig := map[string]interface{}{}
+	data, err := os.ReadFile("backend.json")
+	if err != nil {
+		t.Logf("No backend.json found, using local state: %v", err)
+		return nil
+	}
+	if err := json.Unmarshal(data, &backendConfig); err != nil {
+		t.Fatalf("Failed to parse backend.json: %v", err)
+	}
+	return backendConfig
+}
+
 func TestExampleComplete(t *testing.T) {
-	// retryable errors in terraform testing.
 	t.Log("Starting Sample Module test")
 
 	terraformDir := "../../examples/complete"
+	backendConfig := loadBackendConfig(t)
 
 	// Create IAM Role
 	terraformPreparation := &terraform.Options{
-		TerraformDir: terraformDir,
-		NoColor:      false,
-		Lock:         true,
+		TerraformDir:  terraformDir,
+		NoColor:       false,
+		Lock:          true,
+		BackendConfig: backendConfig,
 		Targets: []string{
 			"module.create_provisioner",
 		},
@@ -26,9 +42,10 @@ func TestExampleComplete(t *testing.T) {
 	terraform.InitAndApply(t, terraformPreparation)
 
 	terraformModule := &terraform.Options{
-		TerraformDir: terraformDir,
-		NoColor:      false,
-		Lock:         true,
+		TerraformDir:  terraformDir,
+		NoColor:       false,
+		Lock:          true,
+		BackendConfig: backendConfig,
 	}
 	defer terraform.Destroy(t, terraformModule)
 	terraform.InitAndApply(t, terraformModule)
