@@ -8,16 +8,19 @@ import (
 )
 
 func TestExampleComplete(t *testing.T) {
-	// retryable errors in terraform testing.
 	t.Log("Starting Sample Module test")
 
-	terraformDir := "../../examples/complete"
+	terraformDir := "../../_example/complete"
+	stateKey := "terratest/terraform-aws-acf-org-delegation.tfstate"
+	backendConfig := loadBackendConfig(t, stateKey)
 
 	// Create IAM Role
 	terraformPreparation := &terraform.Options{
-		TerraformDir: terraformDir,
-		NoColor:      false,
-		Lock:         true,
+		TerraformDir:  terraformDir,
+		NoColor:       false,
+		Lock:          true,
+		BackendConfig: backendConfig,
+		Reconfigure:   true,
 		Targets: []string{
 			"module.create_provisioner",
 		},
@@ -26,9 +29,11 @@ func TestExampleComplete(t *testing.T) {
 	terraform.InitAndApply(t, terraformPreparation)
 
 	terraformModule := &terraform.Options{
-		TerraformDir: terraformDir,
-		NoColor:      false,
-		Lock:         true,
+		TerraformDir:  terraformDir,
+		NoColor:       false,
+		Lock:          true,
+		BackendConfig: backendConfig,
+		Reconfigure:   true,
 	}
 	defer terraform.Destroy(t, terraformModule)
 	terraform.InitAndApply(t, terraformModule)

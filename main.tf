@@ -18,7 +18,7 @@ terraform {
   required_providers {
     aws = {
       source                = "hashicorp/aws"
-      version               = ">= 5.100"
+      version               = ">= 6.0"
       configuration_aliases = []
     }
   }
@@ -36,7 +36,7 @@ locals {
     {
       "module_provider" = "ACAI GmbH",
       "module_name"     = "terraform-aws-acf-org-delegation",
-      "module_source"   = "github.com/acai-consulting/terraform-aws-acf-org-delegation",
+      "module_source"   = "github.com/acai-solutions/terraform-aws-acf-org-delegation",
       "module_version"  = /*inject_version_start*/ "1.2.0" /*inject_version_end*/
     }
   ) : null
@@ -109,11 +109,8 @@ locals {
 resource "aws_config_aggregate_authorization" "config_delegation" {
   count = local.config_delegation ? 1 : 0
 
-  account_id = local.config_admin_account_id
-  region     = local.config_aggregation_region
-
-  # from aws-provider 6.0 onwards, authorized_aws_region should be specified
-  #authorized_aws_region = local.config_aggregation_region
+  account_id            = local.config_admin_account_id
+  authorized_aws_region = local.config_aggregation_region
 
   depends_on = [aws_organizations_delegated_administrator.delegations]
 }

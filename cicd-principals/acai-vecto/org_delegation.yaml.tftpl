@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "IAM Role used to provision the OrganizationStructure"
+Description: "IAM Role used to provision the Organization Delegation"
 
 Resources:
   OrganizationStructureProvisioningRole:
@@ -7,10 +7,10 @@ Resources:
     Properties:
       RoleName: "$${target_principal_role_name}"
       Path: "$${target_principal_role_path}"
-      Description: "IAM Role used to provision the OrganizationStructure"
+      Description: "IAM Role used to provision the Organization Delegation"
 $${resource_tags_block}
       AssumeRolePolicyDocument:
-        #add trust policy here
+        # add trust policy here
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
@@ -27,7 +27,7 @@ $${resource_tags_block}
                 Action:
                   - "organizations:TagResource"
                   - "organizations:UntagResource"
-                Resource: "arn:aws:organizations::*:resourcepolicy/*/rp-*"
+                Resource: "arn:!Sub '${AWS::Partition}:organizations::*:resourcepolicy/*/rp-*'"
               - Effect: Allow
                 Action:
                   - "organizations:List*"
@@ -38,6 +38,14 @@ $${resource_tags_block}
                   - "organizations:DeregisterDelegatedAdministrator"
                   - "organizations:EnableAWSServiceAccess"
 
+                  # --- Config ---
+                  - "config:PutAggregationAuthorization"
+                  - "config:DeleteAggregationAuthorization"
+                  - "config:DescribeAggregationAuthorizations"
+                  - "config:TagResource"
+                  - "config:UntagResource"
+                  - "config:ListTagsForResource"
+
                   # --- Security Hub ---
                   - "securityhub:DescribeHub"
                   - "securityhub:ListOrganizationAdminAccounts"
@@ -46,6 +54,9 @@ $${resource_tags_block}
                   - "securityhub:UpdateSecurityHubConfiguration"
                   - "securityhub:EnableOrganizationAdminAccount"
                   - "securityhub:DisableOrganizationAdminAccount"
+                  - "securityhub:ListTagsForResource"
+                  - "securityhub:TagResource"
+                  - "securityhub:UntagResource"
 
                   # --- GuardDuty ---
                   - "guardduty:CreateDetector"
@@ -54,6 +65,9 @@ $${resource_tags_block}
                   - "guardduty:ListOrganizationAdminAccounts"
                   - "guardduty:EnableOrganizationAdminAccount"
                   - "guardduty:DisableOrganizationAdminAccount"
+                  - "guardduty:ListTagsForResource"
+                  - "guardduty:TagResource"
+                  - "guardduty:UntagResource"
 
                   # --- Macie ---
                   - "macie2:EnableOrganizationAdminAccount"

@@ -12,7 +12,13 @@ on:
 jobs:
   tf_module_checks:
     uses: acai-solutions/github-workflows/.github/workflows/checks-tf-module.yml@main
-    if: ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' || endsWith(github.ref_name, '_ai') }}
+    with:
+      tf_test_beds: '["AWS"]'
+      tf_test_bed_aws_terratest_config: "aws/matrix_tf1x5x7_aws6x0x0.json"
+      tf_terratest_path: "_test/terratest"
+      tf_terratest_examples_path: "_example"
+      tf_ai_autofix_include: true
     secrets: inherit
 
     
