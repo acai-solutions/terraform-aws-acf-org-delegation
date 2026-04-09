@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "IAM Role used to provision the OrganizationStructure"
+Description: "IAM Role used to provision the Organization Delegation"
 
 Resources:
   OrganizationStructureProvisioningRole:
@@ -7,10 +7,10 @@ Resources:
     Properties:
       RoleName: "$${target_principal_role_name}"
       Path: "$${target_principal_role_path}"
-      Description: "IAM Role used to provision the OrganizationStructure"
+      Description: "IAM Role used to provision the Organization Delegation"
 $${resource_tags_block}
       AssumeRolePolicyDocument:
-        #add trust policy here
+        # add trust policy here
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
