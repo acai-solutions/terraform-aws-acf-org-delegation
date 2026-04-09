@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0](https://github.com/acai-solutions/terraform-aws-acf-org-delegation/compare/1.2.0...1.3.0) (2026-04-09)
+
+
+### Features
+
+* multi aws partition-testing ([#3](https://github.com/acai-solutions/terraform-aws-acf-org-delegation/issues/3)) ([0f67dc7](https://github.com/acai-solutions/terraform-aws-acf-org-delegation/commit/0f67dc7f9379551da36980c522530d2fdf2a51da))
+
 ## [1.2.0](https://github.com/acai-solutions/terraform-aws-acf-org-delegation/compare/1.1.0...1.2.0) (2025-11-21)
 
 
