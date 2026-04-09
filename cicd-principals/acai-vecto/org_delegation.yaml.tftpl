@@ -38,6 +38,14 @@ $${resource_tags_block}
                   - "organizations:DeregisterDelegatedAdministrator"
                   - "organizations:EnableAWSServiceAccess"
 
+                  # --- Config ---
+                  - "config:PutAggregationAuthorization"
+                  - "config:DeleteAggregationAuthorization"
+                  - "config:DescribeAggregationAuthorizations"
+                  - "config:TagResource"
+                  - "config:UntagResource"
+                  - "config:ListTagsForResource"
+
                   # --- Security Hub ---
                   - "securityhub:DescribeHub"
                   - "securityhub:ListOrganizationAdminAccounts"
@@ -46,6 +54,9 @@ $${resource_tags_block}
                   - "securityhub:UpdateSecurityHubConfiguration"
                   - "securityhub:EnableOrganizationAdminAccount"
                   - "securityhub:DisableOrganizationAdminAccount"
+                  - "securityhub:ListTagsForResource"
+                  - "securityhub:TagResource"
+                  - "securityhub:UntagResource"
 
                   # --- GuardDuty ---
                   - "guardduty:CreateDetector"
@@ -54,6 +65,9 @@ $${resource_tags_block}
                   - "guardduty:ListOrganizationAdminAccounts"
                   - "guardduty:EnableOrganizationAdminAccount"
                   - "guardduty:DisableOrganizationAdminAccount"
+                  - "guardduty:ListTagsForResource"
+                  - "guardduty:TagResource"
+                  - "guardduty:UntagResource"
 
                   # --- Macie ---
                   - "macie2:EnableOrganizationAdminAccount"
