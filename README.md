@@ -7,7 +7,6 @@
 </div>
 </br>
 
-
 <!-- SHIELDS -->
 [![Maintained by acai.gmbh][acai-shield]][acai-url]
 [![documentation][acai-docs-shield]][acai-docs-url]  
@@ -18,6 +17,7 @@
 ![aws-esc-tested-shield]  
 ![trivy-shield]
 ![checkov-shield]
+
 <!-- BEGIN_ACAI_DOCS -->
 <!-- DESCRIPTION -->
 [Terraform][terraform-url] module to manage AWS Organization delegation.
