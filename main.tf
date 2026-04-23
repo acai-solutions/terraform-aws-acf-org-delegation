@@ -102,14 +102,13 @@ resource "aws_auditmanager_organization_admin_account_registration" "auditmanage
 locals {
   config_delegation         = contains([for d in var.delegations : d.service_principal], "config.amazonaws.com")
   config_admin_account_id   = try([for d in var.delegations : d.target_account_id if d.service_principal == "config.amazonaws.com"][0], null)
-  config_aggregation_region = try([for d in var.delegations : d.aggregation_region if d.service_principal == "config.amazonaws.com"][0], null)
 }
 
 resource "aws_config_aggregate_authorization" "config_delegation" {
   count = local.config_delegation ? 1 : 0
 
   account_id            = local.config_admin_account_id
-  authorized_aws_region = local.config_aggregation_region
+  authorized_aws_region = data.aws_region.current.name
 
   depends_on = [aws_organizations_delegated_administrator.delegations]
 }
