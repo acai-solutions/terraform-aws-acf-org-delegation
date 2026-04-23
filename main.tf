@@ -100,8 +100,8 @@ resource "aws_auditmanager_organization_admin_account_registration" "auditmanage
 # ¦ DELEGATION - config.amazonaws.com
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  config_delegation         = contains([for d in var.delegations : d.service_principal], "config.amazonaws.com")
-  config_admin_account_id   = try([for d in var.delegations : d.target_account_id if d.service_principal == "config.amazonaws.com"][0], null)
+  config_delegation       = contains([for d in var.delegations : d.service_principal], "config.amazonaws.com")
+  config_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "config.amazonaws.com"][0], null)
 }
 
 resource "aws_config_aggregate_authorization" "config_delegation" {
