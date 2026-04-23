@@ -18,7 +18,7 @@ terraform {
   required_providers {
     aws = {
       source                = "hashicorp/aws"
-      version               = ">= 4.0"
+      version               = ">= 6.0.0"
       configuration_aliases = []
     }
   }
@@ -32,7 +32,7 @@ module "create_provisioner" {
   source = "../../cicd-principals/terraform"
 
   iam_role_settings = {
-    name = "cicd_provisioner"
+    name = "org_delegation_cicd_provisioner"
     aws_trustee_arns = [
       "arn:${var.aws_partition}:iam::${var.account_ids.org_mgmt}:root"
     ]
@@ -77,6 +77,11 @@ locals {
     {
       regions           = ["us-east-1"]
       service_principal = "cloudtrail.amazonaws.com"
+      target_account_id = var.account_ids.core_security
+    },
+    {
+      regions           = [local.primary_aws_region]
+      service_principal = "config.amazonaws.com"
       target_account_id = var.account_ids.core_security
     },
     {
