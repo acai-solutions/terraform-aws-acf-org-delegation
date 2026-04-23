@@ -1,11 +1,9 @@
 # AWS Organization Delegation - ACF Terraform Module
 
 <!-- LOGO -->
-<div style="text-align: right; margin-top: -60px;">
-<a href="https://acai.gmbh">
-  <img src="https://github.com/acai-solutions/acai.public/raw/main/logo/logo_github_readme.png" alt="acai logo" title="ACAI"  width="250" /></a>
-</div>
-</br>
+<a href="https://acai.gmbh">    
+  <img src="https://github.com/acai-solutions/acai.public/raw/main/logo/logo_github_readme.png" alt="acai logo" title="ACAI" align="right" height="75" />
+</a>
 
 <!-- SHIELDS -->
 [![Maintained by acai.gmbh][acai-shield]][acai-url]
