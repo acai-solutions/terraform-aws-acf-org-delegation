@@ -1,18 +1,23 @@
-# terraform-aws-acf-ou-mgmt Terraform module
+# AWS Organization Delegation - ACF Terraform Module
 
 <!-- LOGO -->
-<a href="https://acai.gmbh">    
-  <img src="https://github.com/acai-solutions/acai.public/raw/main/logo/logo_github_readme.png" alt="acai logo" title="ACAI" align="right" height="75" />
-</a>
+<div style="text-align: right; margin-top: -60px;">
+<a href="https://acai.gmbh">
+  <img src="https://github.com/acai-solutions/acai.public/raw/main/logo/logo_github_readme.png" alt="acai logo" title="ACAI"  width="250" /></a>
+</div>
+</br>
+
 
 <!-- SHIELDS -->
 [![Maintained by acai.gmbh][acai-shield]][acai-url]
 [![documentation][acai-docs-shield]][acai-docs-url]  
-![module-version-shield]
-![terraform-version-shield]  
+![module-version-shield]  
+![terraform-tested-shield]
+![opentofu-tested-shield]  
+![aws-tested-shield]
+![aws-esc-tested-shield]  
 ![trivy-shield]
 ![checkov-shield]
-
 <!-- BEGIN_ACAI_DOCS -->
 <!-- DESCRIPTION -->
 [Terraform][terraform-url] module to manage AWS Organization delegation.
@@ -186,15 +191,24 @@ This module is maintained by [ACAI GmbH][acai-url].
 
 See [LICENSE][license-url] for full details.
 
+<!-- COPYRIGHT -->
+<br />
+<br />
+<p align="center">Copyright ACAI GmbH</p>
+
 <!-- MARKDOWN LINKS & IMAGES -->
 [acai-shield]: https://img.shields.io/badge/maintained_by-acai.gmbh-CB224B?style=flat
-[acai-docs-shield]: https://img.shields.io/badge/documentation-docs.acai.gmbh-CB224B?style=flat
 [acai-url]: https://acai.gmbh
+[acai-docs-shield]: https://img.shields.io/badge/documentation-docs.acai.gmbh-CB224B?style=flat
 [acai-docs-url]: https://docs.acai.gmbh/solution-acf/10_overview/
 [module-version-shield]: https://img.shields.io/badge/module_version-1.3.0-CB224B?style=flat
-[module-release-url]: https://github.com/acai-solutions/terraform-aws-acf-org-delegation/releases
-[terraform-version-shield]: https://img.shields.io/badge/tf-%3E%3D1.5.7-blue.svg?style=flat&color=blueviolet
+[module-release-url]: ./releases
+[terraform-tested-shield]: https://img.shields.io/badge/terraform-%3E%3D1.5.7_tested-844FBA?style=flat&logo=terraform&logoColor=white
+[opentofu-tested-shield]: https://img.shields.io/badge/opentofu-%3E%3D1.6_tested-FFDA18?style=flat&logo=opentofu&logoColor=black
+[aws-tested-shield]: https://img.shields.io/badge/AWS-%E2%9C%93_tested-FF9900?style=flat&logo=amazonaws&logoColor=white
+[aws-esc-tested-shield]: https://img.shields.io/badge/AWS_ESC-%E2%9C%93_tested-003399?style=flat&logo=amazonaws&logoColor=white
 [trivy-shield]: https://img.shields.io/badge/trivy-passed-green
 [checkov-shield]: https://img.shields.io/badge/checkov-passed-green
 [license-url]: ./LICENSE.md
 [terraform-url]: https://www.terraform.io
+[aws-url]: https://aws.amazon.com

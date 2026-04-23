@@ -21,3 +21,10 @@ func loadBackendConfig(t *testing.T, stateKey string) map[string]interface{} {
 	}
 	return backendConfig
 }
+
+func getHclBinary() string {
+	if bin := os.Getenv("TERRATEST_TERRAFORM_BINARY"); bin != "" {
+		return bin
+	}
+	return "terraform"
+}

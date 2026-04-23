@@ -10,12 +10,13 @@ import (
 func TestExampleComplete(t *testing.T) {
 	t.Log("Starting Sample Module test")
 
-	terraformDir := "../../_example/complete"
+	terraformDir := "../../examples/complete"
 	stateKey := "terratest/terraform-aws-acf-org-delegation.tfstate"
 	backendConfig := loadBackendConfig(t, stateKey)
 
 	// Create IAM Role
 	terraformPreparation := &terraform.Options{
+		TerraformBinary: getHclBinary(),
 		TerraformDir:  terraformDir,
 		NoColor:       false,
 		Lock:          true,
@@ -29,6 +30,7 @@ func TestExampleComplete(t *testing.T) {
 	terraform.InitAndApply(t, terraformPreparation)
 
 	terraformModule := &terraform.Options{
+		TerraformBinary: getHclBinary(),
 		TerraformDir:  terraformDir,
 		NoColor:       false,
 		Lock:          true,
