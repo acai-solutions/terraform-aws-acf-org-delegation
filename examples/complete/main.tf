@@ -23,16 +23,6 @@ terraform {
   }
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# ¦ MODULE
-# ---------------------------------------------------------------------------------------------------------------------
-
-locals {
-  primary_aws_region = var.aws_region
-  default_regions    = var.aws_region != "eu-central-1" ? [var.aws_region] : ["eu-central-1", "us-east-2"]
-  global_region      = var.aws_region != "eu-central-1" ? var.aws_region : "us-east-1"
-}
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ¦ CREATE PROVISIONER
@@ -52,86 +42,57 @@ module "create_provisioner" {
 }
 
 provider "aws" {
-  region = local.primary_aws_region
-  alias  = "org_mgmt_primary_region"
+  region = var.aws_region
+  alias  = "org_mgmt_region"
   assume_role {
     role_arn = module.create_provisioner.iam_role_arn
   }
 }
 
-provider "aws" {
-  region = local.global_region
-  alias  = "org_mgmt_global_region"
-  assume_role {
-    role_arn = module.create_provisioner.iam_role_arn
-  }
-}
 # ---------------------------------------------------------------------------------------------------------------------
 # ¦ MODULE
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  delegations = [
+  # Service principals always use amazonaws.com regardless of partition/endpoint domain
+  delegations = concat([
     {
-      regions           = [local.global_region]
-      service_principal = "cloudtrail.${var.aws_endpoint_domain}"
+      service_principal = "cloudtrail.amazonaws.com"
       target_account_id = var.account_ids.core_security
     },
     {
-      regions           = [local.primary_aws_region]
-      service_principal = "config.${var.aws_endpoint_domain}"
+      service_principal = "config.amazonaws.com"
       target_account_id = var.account_ids.core_security
     },
     {
-      regions           = local.default_regions
-      service_principal = "guardduty.${var.aws_endpoint_domain}"
+      service_principal = "guardduty.amazonaws.com"
       target_account_id = var.account_ids.core_security
     },
     {
-      regions           = local.default_regions
-      service_principal = "securityhub.${var.aws_endpoint_domain}"
+      service_principal = "securityhub.amazonaws.com"
       target_account_id = var.account_ids.core_security
     },
     {
-      regions           = [local.primary_aws_region]
-      service_principal = "backup.${var.aws_endpoint_domain}"
+      service_principal = "member.org.stacksets.cloudformation.amazonaws.com"
       target_account_id = var.account_ids.core_security
     },
     {
-      regions           = [local.primary_aws_region]
-      service_principal = "member.org.stacksets.cloudformation.${var.aws_endpoint_domain}"
-      target_account_id = var.account_ids.core_security
-    },
-    {
-      regions           = [local.primary_aws_region]
-      service_principal = "member.org.stacksets.cloudformation.${var.aws_endpoint_domain}"
+      service_principal = "member.org.stacksets.cloudformation.amazonaws.com"
       target_account_id = var.account_ids.core_logging
     }
-  ]
+    ],
+    # backup delegation is only available on standard AWS partition
+    var.aws_partition == "aws" ? [{
+      service_principal = "backup.amazonaws.com"
+      target_account_id = var.account_ids.core_security
+    }] : []
+  )
 }
 
-module "preprocess_data" {
-  source = "../../modules/preprocess-data"
+module "example" {
+  source = "../../"
 
-  primary_aws_region = local.primary_aws_region
+  primary_aws_region = true
   delegations        = local.delegations
-}
-
-module "example_primary" {
-  source = "../../"
-
-  primary_aws_region = module.preprocess_data.is_primary_region[local.primary_aws_region]
-  delegations        = module.preprocess_data.delegations_by_region[local.primary_aws_region]
-  providers = {
-    aws = aws.org_mgmt_primary_region
-  }
-  depends_on = [module.create_provisioner]
-}
-
-
-module "example_global" {
-  source = "../../"
-
-  primary_aws_region = module.preprocess_data.is_primary_region[local.global_region]
   aws_organizations_resource_policy = {
     content_as_json = jsonencode({
       "Version" : "2012-10-17",
@@ -170,9 +131,7 @@ module "example_global" {
     }
   }
   providers = {
-    aws = aws.org_mgmt_global_region
+    aws = aws.org_mgmt_region
   }
-  depends_on = [
-    module.create_provisioner,
-  ]
+  depends_on = [module.create_provisioner]
 }

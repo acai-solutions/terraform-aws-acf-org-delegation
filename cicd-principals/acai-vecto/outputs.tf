@@ -10,7 +10,8 @@
 
 
 output "cf_template_map" {
+  description = "Map of CloudFormation template file names to their rendered content."
   value = {
-    "org_delegation.yaml.tftpl" = replace(data.template_file.org_delegation.rendered, "$$$", "$$")
+    "org_delegation.yaml.tftpl" = replace(local.org_delegation_rendered, "$$$", "$$")
   }
 }
