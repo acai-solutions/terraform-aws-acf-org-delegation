@@ -11,6 +11,6 @@
 
 output "cf_template_map" {
   value = {
-    "org_delegation.yaml.tftpl" = local.org_delegation
+    "org_delegation.yaml.tftpl" = replace(local.org_delegation, "$$$", "$$")
   }
 }
