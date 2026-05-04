@@ -41,7 +41,7 @@ locals {
   ) : null
 
   is_primary_region = var.preprocessed_data.primary_aws_region == data.aws_region.current.name
-  is_use1 = data.aws_region.current.name == "us-east-1"
+  is_use1           = data.aws_region.current.name == "us-east-1"
 }
 
 
