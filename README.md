@@ -128,6 +128,25 @@ module "example_use2" {
   ]
 }
 ```
+
+> **Important — multi-region sequencing:** Secondary-region module instances **must** declare `depends_on` on the primary-region instance.
+>
+> AWS delegated administrator registration (`RegisterDelegatedAdministrator`) is **organization-wide (global)**, performed once per `(account, service_principal)` pair. The primary-region module performs this registration explicitly. Several regional service-admin APIs (Security Hub, Macie, Detective, Inspector, Audit Manager) **implicitly** call `RegisterDelegatedAdministrator` if the account is not yet registered. Without sequencing, a secondary-region module can race the primary and trigger an implicit registration, causing the primary's explicit call to fail with `AccountAlreadyRegisteredException`.
+>
+> **Service delegation scope reference:**
+>
+> | Service | Scope | Notes |
+> |---|---|---|
+> | `cloudtrail.amazonaws.com` | Global | Register once per organization |
+> | `ipam.amazonaws.com` | Global | Register once per organization |
+> | `fms.amazonaws.com` | Global | `us-east-1` only |
+> | `guardduty.amazonaws.com` | Regional | Same admin account required in every region |
+> | `securityhub.amazonaws.com` | Regional | Per-region admin |
+> | `macie.amazonaws.com` | Regional | Per-region admin |
+> | `detective.amazonaws.com` | Regional | Per-region admin |
+> | `inspector2.amazonaws.com` | Regional | Per-region admin |
+> | `auditmanager.amazonaws.com` | Regional | Per-region admin |
+> | `config.amazonaws.com` | Regional | Aggregator authorization is per source region |
 <!-- END_ACAI_DOCS -->
 
 <!-- BEGIN_TF_DOCS -->

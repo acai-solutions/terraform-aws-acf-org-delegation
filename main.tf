@@ -160,7 +160,7 @@ resource "aws_guardduty_detector" "guardduty" {
 }
 
 resource "aws_guardduty_organization_admin_account" "guardduty" {
-  count = local.guardduty_delegation && local.is_primary_region ? 1 : 0
+  count = local.guardduty_delegation ? 1 : 0
 
   admin_account_id = local.guardduty_admin_account_id
   depends_on       = [aws_guardduty_detector.guardduty]
