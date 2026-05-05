@@ -145,7 +145,7 @@ resource "aws_config_aggregate_authorization" "config_delegation" {
   count = local.config_delegation ? 1 : 0
 
   account_id            = local.config_admin_account_id
-  authorized_aws_region = data.aws_region.current.name
+  authorized_aws_region = data.aws_region.current.region
 
   depends_on = [aws_organizations_delegated_administrator.delegations]
 }
@@ -251,7 +251,7 @@ resource "aws_fms_admin_account" "fms" {
   lifecycle {
     precondition {
       condition     = local.is_use1
-      error_message = "FMS can only be delegated in 'us-east-1'. Current provider region is '${data.aws_region.current.name}'."
+      error_message = "FMS can only be delegated in 'us-east-1'. Current provider region is '${data.aws_region.current.region}'."
     }
   }
 }

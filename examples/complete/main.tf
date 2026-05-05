@@ -25,45 +25,6 @@ terraform {
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ¦ CREATE PROVISIONER
-# ---------------------------------------------------------------------------------------------------------------------
-module "create_provisioner" {
-  source = "../../cicd-principals/terraform"
-
-  iam_role_settings = {
-    name = "org_delegation_cicd_provisioner"
-    aws_trustee_arns = [
-      "arn:${var.aws_partition}:iam::${var.account_ids.org_mgmt}:root"
-    ]
-  }
-  providers = {
-    aws = aws.org_mgmt
-  }
-}
-
-# Region-pinned providers for the org-mgmt account, each assuming the provisioner role.
-# Primary region provider - used on both AWS commercial and AWS ESC.
-provider "aws" {
-  region = var.aws_region
-  alias  = "org_mgmt_primary"
-  assume_role {
-    role_arn = module.create_provisioner.iam_role_arn
-  }
-}
-
-# Secondary region provider - only relevant for AWS commercial (us-east-1).
-# On non-commercial partitions (e.g. AWS ESC) us-east-1 does not exist, so we
-# fall back to the primary region to keep the provider configurable; the
-# consuming module instance is gated by `count` and will not be created.
-provider "aws" {
-  region = var.aws_partition == "aws" ? "us-east-1" : var.aws_region
-  alias  = "org_mgmt_use1"
-  assume_role {
-    role_arn = module.create_provisioner.iam_role_arn
-  }
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
 # ¦ MODULE
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
