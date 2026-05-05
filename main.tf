@@ -73,10 +73,42 @@ locals {
       target_account_id = delegation.target_account_id
     } if !contains(local.skipped_delegations, delegation.service_principal) && local.is_primary_region
   ]
+  common_delegations_map = { for del in local.common_delegations : "${del.target_account_id}/${del.service_principal}" => del }
+
+  # Distinct service principals that need to be discovered for potential pre-existing registrations.
+  # Several regional service-admin APIs (Security Hub, Macie, Detective, Inspector, Audit Manager)
+  # implicitly call RegisterDelegatedAdministrator. If a previous apply registered them but failed
+  # before recording state (or another tool registered them), the explicit registration below would
+  # otherwise fail with AccountAlreadyRegisteredException.
+  delegation_service_principals = distinct([for del in local.common_delegations : del.service_principal])
+}
+
+# Discover existing delegated administrators per service to avoid re-registering them.
+data "aws_organizations_delegated_administrators" "by_service" {
+  for_each          = toset(local.delegation_service_principals)
+  service_principal = each.value
+}
+
+locals {
+  # Set of "<account_id>/<service_principal>" keys that already exist in AWS Organizations.
+  existing_delegation_keys = toset(flatten([
+    for sp, result in data.aws_organizations_delegated_administrators.by_service : [
+      for admin in result.delegated_administrators : "${admin.id}/${sp}"
+    ]
+  ]))
+
+  # Only delegations that do not yet exist in AWS Organizations are managed by this resource.
+  # Pre-existing delegations remain in place but are not tracked in state (terraform destroy
+  # will not deregister them). This avoids AccountAlreadyRegisteredException on create when a
+  # service has already been implicitly registered (e.g. by Security Hub / Macie / etc. APIs).
+  delegations_to_create = {
+    for key, del in local.common_delegations_map : key => del
+    if !contains(local.existing_delegation_keys, key)
+  }
 }
 
 resource "aws_organizations_delegated_administrator" "delegations" {
-  for_each = { for del in local.common_delegations : "${del.target_account_id}/${del.service_principal}" => del }
+  for_each = local.delegations_to_create
 
   account_id        = each.value.target_account_id
   service_principal = each.value.service_principal
