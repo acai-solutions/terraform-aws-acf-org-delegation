@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0](https://github.com/acai-solutions/terraform-aws-acf-org-delegation/compare/1.3.0...1.4.0) (2026-05-05)
+
+
+### Features
+
+* support ESC and OpenTofu ([#6](https://github.com/acai-solutions/terraform-aws-acf-org-delegation/issues/6)) ([6e51793](https://github.com/acai-solutions/terraform-aws-acf-org-delegation/commit/6e51793d92c406ce1ee1df19b0f1e657e77c3dd1))
+
 ## [1.3.0](https://github.com/acai-solutions/terraform-aws-acf-org-delegation/compare/1.2.0...1.3.0) (2026-04-09)
 
 
