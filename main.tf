@@ -91,7 +91,7 @@ locals {
 }
 
 resource "aws_auditmanager_organization_admin_account_registration" "auditmanager" {
-  count = local.auditmanager_delegation && local.is_primary_region ? 1 : 0
+  count = local.auditmanager_delegation ? 1 : 0
 
   admin_account_id = local.auditmanager_admin_account_id
   depends_on       = [aws_organizations_delegated_administrator.delegations]
@@ -138,7 +138,7 @@ resource "aws_securityhub_account" "securityhub" {
 }
 
 resource "aws_securityhub_organization_admin_account" "securityhub" {
-  count = local.securityhub_delegation && local.is_primary_region ? 1 : 0
+  count = local.securityhub_delegation ? 1 : 0
 
   admin_account_id = local.securityhub_admin_account_id
   depends_on       = [aws_securityhub_account.securityhub[0]]
@@ -176,7 +176,7 @@ locals {
 }
 
 resource "aws_detective_organization_admin_account" "detective" {
-  count = local.detective_delegation && local.is_primary_region ? 1 : 0
+  count = local.detective_delegation ? 1 : 0
 
   account_id = local.detective_admin_account_id
   depends_on = [aws_organizations_delegated_administrator.delegations]
@@ -192,9 +192,10 @@ locals {
 }
 
 resource "aws_inspector2_delegated_admin_account" "inspector" {
-  count = local.inspector_delegation && local.is_primary_region ? 1 : 0
+  count = local.inspector_delegation ? 1 : 0
 
   account_id = local.inspector_admin_account_id
+  depends_on = [aws_organizations_delegated_administrator.delegations]
 }
 
 
@@ -233,7 +234,7 @@ resource "aws_macie2_account" "macie" {
 }
 
 resource "aws_macie2_organization_admin_account" "macie" {
-  count = local.macie_delegation && local.is_primary_region ? 1 : 0
+  count = local.macie_delegation ? 1 : 0
 
   admin_account_id = local.macie_admin_account_id
   depends_on = [

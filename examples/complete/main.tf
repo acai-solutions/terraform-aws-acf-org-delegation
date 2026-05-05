@@ -190,5 +190,5 @@ module "example_use1" {
   providers = {
     aws = aws.org_mgmt_use1
   }
-  depends_on = [module.create_provisioner]
+  depends_on = [module.example_primary]
 }
