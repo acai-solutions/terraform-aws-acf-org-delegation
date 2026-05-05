@@ -27,7 +27,7 @@ $${resource_tags_block}
                 Action:
                   - "organizations:TagResource"
                   - "organizations:UntagResource"
-                Resource: "arn:!Sub '${AWS::Partition}:organizations::*:resourcepolicy/*/rp-*'"
+                Resource: !Sub "arn:$$$${AWS::Partition}:organizations::*:resourcepolicy/*/rp-*"
               - Effect: Allow
                 Action:
                   - "organizations:List*"

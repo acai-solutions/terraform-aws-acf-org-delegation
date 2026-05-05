@@ -1,4 +1,4 @@
-# terraform-aws-acf-ou-mgmt Terraform module
+# AWS Organization Delegation - ACF Terraform Module
 
 <!-- LOGO -->
 <a href="https://acai.gmbh">    
@@ -8,8 +8,11 @@
 <!-- SHIELDS -->
 [![Maintained by acai.gmbh][acai-shield]][acai-url]
 [![documentation][acai-docs-shield]][acai-docs-url]  
-![module-version-shield]
-![terraform-version-shield]  
+![module-version-shield]  
+![terraform-tested-shield]
+![opentofu-tested-shield]  
+![aws-tested-shield]
+![aws-esc-tested-shield]  
 ![trivy-shield]
 ![checkov-shield]
 
@@ -80,8 +83,11 @@ module "example_euc1" {
   source  = "app.terraform.io/acai-solutions/org-delegation/aws"
   version = "~> 1.0"
 
-  primary_aws_region = module.preprocess_data.is_primary_region["eu-central-1"]
-  delegations        = module.preprocess_data.delegations_by_region["eu-central-1"]
+  preprocessed_data = {
+    primary_aws_region = local.primary_aws_region
+    current_aws_region = "eu-central-1"
+    delegations        = module.preprocess_data.delegations_by_region["eu-central-1"]
+  }
   providers = {
     aws = aws.org_mgmt_euc1
   }
@@ -93,8 +99,11 @@ module "example_use1" {
   source  = "app.terraform.io/acai-solutions/org-delegation/aws"
   version = "~> 1.0"
 
-  primary_aws_region = module.preprocess_data.is_primary_region["us-east-1"]
-  delegations        = module.preprocess_data.delegations_by_region["us-east-1"]
+  preprocessed_data = {
+    primary_aws_region = local.primary_aws_region
+    current_aws_region = "us-east-1"
+    delegations        = module.preprocess_data.delegations_by_region["us-east-1"]
+  }
   providers = {
     aws = aws.org_mgmt_use1
   }
@@ -108,8 +117,11 @@ module "example_use2" {
   source  = "app.terraform.io/acai-solutions/org-delegation/aws"
   version = "~> 1.0"
 
-  primary_aws_region = module.preprocess_data.is_primary_region["us-east-2"]
-  delegations        = module.preprocess_data.delegations_by_region["us-east-2"]
+  preprocessed_data = {
+    primary_aws_region = local.primary_aws_region
+    current_aws_region = "us-east-2"
+    delegations        = module.preprocess_data.delegations_by_region["us-east-2"]
+  }
   providers = {
     aws = aws.org_mgmt_use2
   }
@@ -119,6 +131,25 @@ module "example_use2" {
   ]
 }
 ```
+
+> **Important — multi-region sequencing:** Secondary-region module instances **must** declare `depends_on` on the primary-region instance.
+>
+> AWS delegated administrator registration (`RegisterDelegatedAdministrator`) is **organization-wide (global)**, performed once per `(account, service_principal)` pair. The primary-region module performs this registration explicitly. Several regional service-admin APIs (Security Hub, Macie, Detective, Inspector, Audit Manager) **implicitly** call `RegisterDelegatedAdministrator` if the account is not yet registered. Without sequencing, a secondary-region module can race the primary and trigger an implicit registration, causing the primary's explicit call to fail with `AccountAlreadyRegisteredException`.
+>
+> **Service delegation scope reference:**
+>
+> | Service | Scope | Notes |
+> |---|---|---|
+> | `cloudtrail.amazonaws.com` | Global | Register once per organization |
+> | `ipam.amazonaws.com` | Global | Register once per organization |
+> | `fms.amazonaws.com` | Global | `us-east-1` only |
+> | `guardduty.amazonaws.com` | Regional | Same admin account required in every region |
+> | `securityhub.amazonaws.com` | Regional | Per-region admin |
+> | `macie.amazonaws.com` | Regional | Per-region admin |
+> | `detective.amazonaws.com` | Regional | Per-region admin |
+> | `inspector2.amazonaws.com` | Regional | Per-region admin |
+> | `auditmanager.amazonaws.com` | Regional | Per-region admin |
+> | `config.amazonaws.com` | Regional | Aggregator authorization is per source region |
 <!-- END_ACAI_DOCS -->
 
 <!-- BEGIN_TF_DOCS -->
@@ -165,8 +196,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_organizations_resource_policy"></a> [aws\_organizations\_resource\_policy](#input\_aws\_organizations\_resource\_policy) | JSON of the AWS Organizations Delegation. Ensure this is only specified in one instance of this module | <pre>object({<br/>    content_as_json = string<br/>    resource_tags   = optional(map(string))<br/>  })</pre> | `null` | no |
-| <a name="input_delegations"></a> [delegations](#input\_delegations) | List of delegations specifying the target account ID and service principal for AWS Organizations Delegated Administrators. | <pre>list(object({<br/>    service_principal : string # https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services_list.html<br/>    target_account_id : string<br/>    aggregation_region : optional(string)<br/>    additional_settings = optional(map(string))<br/>  }))</pre> | `[]` | no |
-| <a name="input_primary_aws_region"></a> [primary\_aws\_region](#input\_primary\_aws\_region) | Explicitly decide if this is the primary AWS Regin. May only be done for one region. | `bool` | `false` | no |
+| <a name="input_preprocessed_data"></a> [preprocessed\_data](#input\_preprocessed\_data) | Preprocessed delegation data from the preprocess-data submodule, including the primary AWS region and list of delegations for the current region. | <pre>object({<br/>    primary_aws_region = string<br/>    delegations = list(object({<br/>      service_principal   = string<br/>      target_account_id   = string<br/>      aggregation_region  = optional(string)<br/>      additional_settings = optional(map(string))<br/>    }))<br/>  })</pre> | n/a | yes |
 
 ## Outputs
 
@@ -186,15 +216,24 @@ This module is maintained by [ACAI GmbH][acai-url].
 
 See [LICENSE][license-url] for full details.
 
+<!-- COPYRIGHT -->
+<br />
+<br />
+<p align="center">Copyright ACAI GmbH</p>
+
 <!-- MARKDOWN LINKS & IMAGES -->
 [acai-shield]: https://img.shields.io/badge/maintained_by-acai.gmbh-CB224B?style=flat
-[acai-docs-shield]: https://img.shields.io/badge/documentation-docs.acai.gmbh-CB224B?style=flat
 [acai-url]: https://acai.gmbh
+[acai-docs-shield]: https://img.shields.io/badge/documentation-docs.acai.gmbh-CB224B?style=flat
 [acai-docs-url]: https://docs.acai.gmbh/solution-acf/10_overview/
 [module-version-shield]: https://img.shields.io/badge/module_version-1.3.0-CB224B?style=flat
-[module-release-url]: https://github.com/acai-solutions/terraform-aws-acf-org-delegation/releases
-[terraform-version-shield]: https://img.shields.io/badge/tf-%3E%3D1.5.7-blue.svg?style=flat&color=blueviolet
+[module-release-url]: ./releases
+[terraform-tested-shield]: https://img.shields.io/badge/terraform-%3E%3D1.5.7_tested-844FBA?style=flat&logo=terraform&logoColor=white
+[opentofu-tested-shield]: https://img.shields.io/badge/opentofu-%3E%3D1.6_tested-FFDA18?style=flat&logo=opentofu&logoColor=black
+[aws-tested-shield]: https://img.shields.io/badge/AWS-%E2%9C%93_tested-FF9900?style=flat&logo=amazonaws&logoColor=white
+[aws-esc-tested-shield]: https://img.shields.io/badge/AWS_ESC-%E2%9C%93_tested-003399?style=flat&logo=amazonaws&logoColor=white
 [trivy-shield]: https://img.shields.io/badge/trivy-passed-green
 [checkov-shield]: https://img.shields.io/badge/checkov-passed-green
 [license-url]: ./LICENSE.md
 [terraform-url]: https://www.terraform.io
+[aws-url]: https://aws.amazon.com

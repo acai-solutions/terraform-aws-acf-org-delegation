@@ -9,24 +9,21 @@
 # For commercial licensing, contact: contact@acai.gmbh
 
 
-variable "primary_aws_region" {
-  description = "Explicitly decide if this is the primary AWS Regin. May only be done for one region."
-  type        = bool
-  default     = false
-}
-
-variable "delegations" {
-  description = "List of delegations specifying the target account ID and service principal for AWS Organizations Delegated Administrators."
-  type = list(object({
-    service_principal : string # https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services_list.html
-    target_account_id : string
-    aggregation_region : optional(string)
-    additional_settings = optional(map(string))
-  }))
-  default = []
+variable "preprocessed_data" {
+  description = "Preprocessed delegation data from the preprocess-data submodule, including the primary AWS region, the current AWS region this module instance targets, and the list of delegations for the current region."
+  type = object({
+    primary_aws_region = string
+    current_aws_region = string
+    delegations = list(object({
+      service_principal   = string # https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services_list.html
+      target_account_id   = string
+      aggregation_region  = optional(string)
+      additional_settings = optional(map(string))
+    }))
+  })
 
   validation {
-    condition     = alltrue([for d in var.delegations : can(regex("^\\d{12}$", d.target_account_id))])
+    condition     = alltrue([for d in var.preprocessed_data.delegations : can(regex("^\\d{12}$", d.target_account_id))])
     error_message = "Each 'target_account_id' must be a 12-digit AWS account ID."
   }
 }

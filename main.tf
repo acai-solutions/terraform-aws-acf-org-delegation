@@ -13,13 +13,12 @@
 # ¦ REQUIREMENTS
 # ---------------------------------------------------------------------------------------------------------------------
 terraform {
-  required_version = ">= 1.5.7"
+  required_version = ">= 1.5.0"
 
   required_providers {
     aws = {
-      source                = "hashicorp/aws"
-      version               = ">= 6.0"
-      configuration_aliases = []
+      source  = "hashicorp/aws"
+      version = ">= 6.0"
     }
   }
 }
@@ -41,7 +40,8 @@ locals {
     }
   ) : null
 
-  is_use1 = data.aws_region.current.name == "us-east-1"
+  is_primary_region = lower(var.preprocessed_data.current_aws_region) == lower(var.preprocessed_data.primary_aws_region)
+  is_use1           = lower(var.preprocessed_data.current_aws_region) == "us-east-1"
 }
 
 
@@ -65,18 +65,54 @@ resource "aws_organizations_resource_policy" "aws_organizations_resource_policy"
 locals {
   skipped_delegations = [
     "stacksets.cloudformation.amazonaws.com",
-    "fms.amazonaws.com"
+    "fms.amazonaws.com",
+    # cloudtrail.amazonaws.com is handled by the dedicated aws_cloudtrail_organization_delegated_admin_account
+    # resource below. Registering it through the generic Organizations API also implicitly registers the
+    # CloudTrail delegated admin, which then conflicts with the explicit CloudTrail resource.
+    "cloudtrail.amazonaws.com"
   ]
-  common_delegations = [for delegation in var.delegations :
+  common_delegations = [for delegation in var.preprocessed_data.delegations :
     {
       service_principal = delegation.service_principal,
       target_account_id = delegation.target_account_id
-    } if !contains(local.skipped_delegations, delegation.service_principal) && var.primary_aws_region == true
+    } if !contains(local.skipped_delegations, delegation.service_principal) && local.is_primary_region
   ]
+  common_delegations_map = { for del in local.common_delegations : "${del.target_account_id}/${del.service_principal}" => del }
+
+  # Distinct service principals that need to be discovered for potential pre-existing registrations.
+  # Several regional service-admin APIs (Security Hub, Macie, Detective, Inspector, Audit Manager)
+  # implicitly call RegisterDelegatedAdministrator. If a previous apply registered them but failed
+  # before recording state (or another tool registered them), the explicit registration below would
+  # otherwise fail with AccountAlreadyRegisteredException.
+  delegation_service_principals = distinct([for del in local.common_delegations : del.service_principal])
+}
+
+# Discover existing delegated administrators per service to avoid re-registering them.
+data "aws_organizations_delegated_administrators" "by_service" {
+  for_each          = toset(local.delegation_service_principals)
+  service_principal = each.value
+}
+
+locals {
+  # Set of "<account_id>/<service_principal>" keys that already exist in AWS Organizations.
+  existing_delegation_keys = toset(flatten([
+    for sp, result in data.aws_organizations_delegated_administrators.by_service : [
+      for admin in result.delegated_administrators : "${admin.id}/${sp}"
+    ]
+  ]))
+
+  # Only delegations that do not yet exist in AWS Organizations are managed by this resource.
+  # Pre-existing delegations remain in place but are not tracked in state (terraform destroy
+  # will not deregister them). This avoids AccountAlreadyRegisteredException on create when a
+  # service has already been implicitly registered (e.g. by Security Hub / Macie / etc. APIs).
+  delegations_to_create = {
+    for key, del in local.common_delegations_map : key => del
+    if !contains(local.existing_delegation_keys, key)
+  }
 }
 
 resource "aws_organizations_delegated_administrator" "delegations" {
-  for_each = { for del in local.common_delegations : "${del.target_account_id}/${del.service_principal}" => del }
+  for_each = local.delegations_to_create
 
   account_id        = each.value.target_account_id
   service_principal = each.value.service_principal
@@ -86,8 +122,8 @@ resource "aws_organizations_delegated_administrator" "delegations" {
 # ¦ DELEGATION - auditmanager.amazonaws.com
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  auditmanager_delegation       = contains([for d in var.delegations : d.service_principal], "auditmanager.amazonaws.com")
-  auditmanager_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "auditmanager.amazonaws.com"][0], null)
+  auditmanager_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "auditmanager.amazonaws.com")
+  auditmanager_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "auditmanager.amazonaws.com"][0], null)
 }
 
 resource "aws_auditmanager_organization_admin_account_registration" "auditmanager" {
@@ -101,16 +137,15 @@ resource "aws_auditmanager_organization_admin_account_registration" "auditmanage
 # ¦ DELEGATION - config.amazonaws.com
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  config_delegation         = contains([for d in var.delegations : d.service_principal], "config.amazonaws.com")
-  config_admin_account_id   = try([for d in var.delegations : d.target_account_id if d.service_principal == "config.amazonaws.com"][0], null)
-  config_aggregation_region = try([for d in var.delegations : d.aggregation_region if d.service_principal == "config.amazonaws.com"][0], null)
+  config_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "config.amazonaws.com")
+  config_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "config.amazonaws.com"][0], null)
 }
 
 resource "aws_config_aggregate_authorization" "config_delegation" {
   count = local.config_delegation ? 1 : 0
 
   account_id            = local.config_admin_account_id
-  authorized_aws_region = local.config_aggregation_region
+  authorized_aws_region = data.aws_region.current.region
 
   depends_on = [aws_organizations_delegated_administrator.delegations]
 }
@@ -122,8 +157,8 @@ resource "aws_config_aggregate_authorization" "config_delegation" {
 # https://docs.aws.amazon.com/securityhub/latest/userguide/central-configuration-intro.html
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  securityhub_delegation       = contains([for d in var.delegations : d.service_principal], "securityhub.amazonaws.com")
-  securityhub_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "securityhub.amazonaws.com"][0], null)
+  securityhub_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "securityhub.amazonaws.com")
+  securityhub_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "securityhub.amazonaws.com"][0], null)
 }
 
 resource "aws_securityhub_account" "securityhub" {
@@ -150,8 +185,8 @@ resource "aws_securityhub_organization_admin_account" "securityhub" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/guardduty_organization_admin_account
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  guardduty_delegation       = contains([for d in var.delegations : d.service_principal], "guardduty.amazonaws.com")
-  guardduty_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "guardduty.amazonaws.com"][0], null)
+  guardduty_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "guardduty.amazonaws.com")
+  guardduty_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "guardduty.amazonaws.com"][0], null)
 }
 
 resource "aws_guardduty_detector" "guardduty" {
@@ -161,7 +196,7 @@ resource "aws_guardduty_detector" "guardduty" {
 }
 
 resource "aws_guardduty_organization_admin_account" "guardduty" {
-  count = local.guardduty_delegation && var.primary_aws_region ? 1 : 0
+  count = local.guardduty_delegation ? 1 : 0
 
   admin_account_id = local.guardduty_admin_account_id
   depends_on       = [aws_guardduty_detector.guardduty]
@@ -172,8 +207,8 @@ resource "aws_guardduty_organization_admin_account" "guardduty" {
 # ¦ DELEGATION - detective.amazonaws.com
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  detective_delegation       = contains([for d in var.delegations : d.service_principal], "detective.amazonaws.com")
-  detective_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "detective.amazonaws.com"][0], null)
+  detective_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "detective.amazonaws.com")
+  detective_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "detective.amazonaws.com"][0], null)
 }
 
 resource "aws_detective_organization_admin_account" "detective" {
@@ -188,14 +223,15 @@ resource "aws_detective_organization_admin_account" "detective" {
 # ¦ DELEGATION - inspector2.amazonaws.com
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  inspector_delegation       = contains([for d in var.delegations : d.service_principal], "inspector2.amazonaws.com")
-  inspector_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "inspector2.amazonaws.com"][0], null)
+  inspector_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "inspector2.amazonaws.com")
+  inspector_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "inspector2.amazonaws.com"][0], null)
 }
 
 resource "aws_inspector2_delegated_admin_account" "inspector" {
   count = local.inspector_delegation ? 1 : 0
 
   account_id = local.inspector_admin_account_id
+  depends_on = [aws_organizations_delegated_administrator.delegations]
 }
 
 
@@ -204,8 +240,8 @@ resource "aws_inspector2_delegated_admin_account" "inspector" {
 # once delegated, it can only be revoked from the delegated account
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  fms_delegation       = contains([for d in var.delegations : d.service_principal], "fms.amazonaws.com")
-  fms_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "fms.amazonaws.com"][0], null)
+  fms_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "fms.amazonaws.com")
+  fms_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "fms.amazonaws.com"][0], null)
 }
 
 resource "aws_fms_admin_account" "fms" {
@@ -215,7 +251,7 @@ resource "aws_fms_admin_account" "fms" {
   lifecycle {
     precondition {
       condition     = local.is_use1
-      error_message = "FMS can only be delegated in 'us-east-1'. Current provider region is '${data.aws_region.current.name}'."
+      error_message = "FMS can only be delegated in 'us-east-1'. Current provider region is '${data.aws_region.current.region}'."
     }
   }
 }
@@ -224,8 +260,8 @@ resource "aws_fms_admin_account" "fms" {
 # ¦ DELEGATION - macie.amazonaws.com
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  macie_delegation       = contains([for d in var.delegations : d.service_principal], "macie.amazonaws.com")
-  macie_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "macie.amazonaws.com"][0], null)
+  macie_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "macie.amazonaws.com")
+  macie_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "macie.amazonaws.com"][0], null)
 }
 
 resource "aws_macie2_account" "macie" {
@@ -246,12 +282,12 @@ resource "aws_macie2_organization_admin_account" "macie" {
 # ¦ DELEGATION - ipam.amazonaws.com
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  ipam_delegation       = contains([for d in var.delegations : d.service_principal], "ipam.amazonaws.com")
-  ipam_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "ipam.amazonaws.com"][0], null)
+  ipam_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "ipam.amazonaws.com")
+  ipam_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "ipam.amazonaws.com"][0], null)
 }
 
 resource "aws_vpc_ipam_organization_admin_account" "ipam" {
-  count = local.ipam_delegation ? 1 : 0
+  count = local.ipam_delegation && local.is_primary_region ? 1 : 0
 
   delegated_admin_account_id = local.ipam_admin_account_id
   depends_on                 = [aws_organizations_delegated_administrator.delegations]
@@ -264,13 +300,24 @@ resource "aws_vpc_ipam_organization_admin_account" "ipam" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudtrail_organization_delegated_admin_account
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
-  cloudtrail_delegation       = contains([for d in var.delegations : d.service_principal], "cloudtrail.amazonaws.com")
-  cloudtrail_admin_account_id = try([for d in var.delegations : d.target_account_id if d.service_principal == "cloudtrail.amazonaws.com"][0], null)
+  cloudtrail_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "cloudtrail.amazonaws.com")
+  cloudtrail_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "cloudtrail.amazonaws.com"][0], null)
+
+  # Skip if CloudTrail delegation already exists (was registered in a prior run, manually,
+  # or by another tool). The existing_delegation_keys set is populated by the data source above.
+  cloudtrail_already_registered = local.cloudtrail_delegation && contains(
+    local.existing_delegation_keys,
+    "${local.cloudtrail_admin_account_id}/cloudtrail.amazonaws.com"
+  )
 }
 
 resource "aws_cloudtrail_organization_delegated_admin_account" "cloudtrail" {
-  count = local.cloudtrail_delegation ? 1 : 0
+  count = local.cloudtrail_delegation && local.is_primary_region && !local.cloudtrail_already_registered ? 1 : 0
 
   account_id = local.cloudtrail_admin_account_id
+
+  # Serialize against other AWS Organizations modifications to avoid
+  # ConflictException ("conflicts with another request to modify the same
+  # AWS Organization entity") on parallel registrations.
   depends_on = [aws_organizations_delegated_administrator.delegations]
 }

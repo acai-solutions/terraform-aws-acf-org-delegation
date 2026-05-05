@@ -70,8 +70,6 @@ data "aws_iam_policy_document" "org_delegation_policy" {
   statement {
     effect = "Allow"
     actions = [
-      "organizations:TagResource",
-      "organizations:UntagResource",
       "organizations:List*",
       "organizations:Describe*",
       "organizations:PutResourcePolicy",
@@ -79,6 +77,14 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "organizations:RegisterDelegatedAdministrator",
       "organizations:DeregisterDelegatedAdministrator",
       "organizations:EnableAWSServiceAccess",
+
+      # --- Config ---
+      "config:PutAggregationAuthorization",
+      "config:DeleteAggregationAuthorization",
+      "config:DescribeAggregationAuthorizations",
+      "config:TagResource",
+      "config:UntagResource",
+      "config:ListTagsForResource",
 
       # --- Security Hub ---
       "securityhub:DescribeHub",
@@ -88,6 +94,9 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "securityhub:UpdateSecurityHubConfiguration",
       "securityhub:EnableOrganizationAdminAccount",
       "securityhub:DisableOrganizationAdminAccount",
+      "securityhub:ListTagsForResource",
+      "securityhub:TagResource",
+      "securityhub:UntagResource",
 
       # --- GuardDuty ---
       "guardduty:CreateDetector",
@@ -96,6 +105,9 @@ data "aws_iam_policy_document" "org_delegation_policy" {
       "guardduty:ListOrganizationAdminAccounts",
       "guardduty:EnableOrganizationAdminAccount",
       "guardduty:DisableOrganizationAdminAccount",
+      "guardduty:ListTagsForResource",
+      "guardduty:TagResource",
+      "guardduty:UntagResource",
 
       # --- Macie ---
       "macie2:EnableOrganizationAdminAccount",
