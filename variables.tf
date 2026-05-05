@@ -10,9 +10,10 @@
 
 
 variable "preprocessed_data" {
-  description = "Preprocessed delegation data from the preprocess-data submodule, including the primary AWS region and list of delegations for the current region."
+  description = "Preprocessed delegation data from the preprocess-data submodule, including the primary AWS region, the current AWS region this module instance targets, and the list of delegations for the current region."
   type = object({
     primary_aws_region = string
+    current_aws_region = string
     delegations = list(object({
       service_principal   = string # https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services_list.html
       target_account_id   = string

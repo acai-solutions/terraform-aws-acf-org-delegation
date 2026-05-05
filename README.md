@@ -85,6 +85,7 @@ module "example_euc1" {
 
   preprocessed_data = {
     primary_aws_region = local.primary_aws_region
+    current_aws_region = "eu-central-1"
     delegations        = module.preprocess_data.delegations_by_region["eu-central-1"]
   }
   providers = {
@@ -100,6 +101,7 @@ module "example_use1" {
 
   preprocessed_data = {
     primary_aws_region = local.primary_aws_region
+    current_aws_region = "us-east-1"
     delegations        = module.preprocess_data.delegations_by_region["us-east-1"]
   }
   providers = {
@@ -117,6 +119,7 @@ module "example_use2" {
 
   preprocessed_data = {
     primary_aws_region = local.primary_aws_region
+    current_aws_region = "us-east-2"
     delegations        = module.preprocess_data.delegations_by_region["us-east-2"]
   }
   providers = {

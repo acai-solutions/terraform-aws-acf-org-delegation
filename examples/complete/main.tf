@@ -131,6 +131,7 @@ module "example_primary" {
 
   preprocessed_data = {
     primary_aws_region = local.primary_aws_region
+    current_aws_region = local.primary_aws_region
     delegations        = module.preprocess_data.delegations_by_region[local.primary_aws_region]
   }
   aws_organizations_resource_policy = {
@@ -185,6 +186,7 @@ module "example_use1" {
 
   preprocessed_data = {
     primary_aws_region = local.primary_aws_region
+    current_aws_region = "us-east-1"
     delegations        = module.preprocess_data.delegations_by_region["us-east-1"]
   }
   providers = {

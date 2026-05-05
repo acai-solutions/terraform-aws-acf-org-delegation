@@ -40,8 +40,8 @@ locals {
     }
   ) : null
 
-  is_primary_region = var.preprocessed_data.primary_aws_region == data.aws_region.current.name
-  is_use1           = data.aws_region.current.name == "us-east-1"
+  is_primary_region = lower(var.preprocessed_data.current_aws_region) == lower(var.preprocessed_data.primary_aws_region)
+  is_use1           = lower(var.preprocessed_data.current_aws_region) == "us-east-1"
 }
 
 
