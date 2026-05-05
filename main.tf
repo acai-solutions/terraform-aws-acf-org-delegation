@@ -315,4 +315,9 @@ resource "aws_cloudtrail_organization_delegated_admin_account" "cloudtrail" {
   count = local.cloudtrail_delegation && local.is_primary_region && !local.cloudtrail_already_registered ? 1 : 0
 
   account_id = local.cloudtrail_admin_account_id
+
+  # Serialize against other AWS Organizations modifications to avoid
+  # ConflictException ("conflicts with another request to modify the same
+  # AWS Organization entity") on parallel registrations.
+  depends_on = [aws_organizations_delegated_administrator.delegations]
 }
