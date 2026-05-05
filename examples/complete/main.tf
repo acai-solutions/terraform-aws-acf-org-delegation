@@ -52,8 +52,11 @@ provider "aws" {
 }
 
 # Secondary region provider - only relevant for AWS commercial (us-east-1).
+# On non-commercial partitions (e.g. AWS ESC) us-east-1 does not exist, so we
+# fall back to the primary region to keep the provider configurable; the
+# consuming module instance is gated by `count` and will not be created.
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_partition == "aws" ? "us-east-1" : var.aws_region
   alias  = "org_mgmt_use1"
   assume_role {
     role_arn = module.create_provisioner.iam_role_arn
