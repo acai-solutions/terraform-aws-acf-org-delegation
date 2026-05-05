@@ -65,7 +65,11 @@ resource "aws_organizations_resource_policy" "aws_organizations_resource_policy"
 locals {
   skipped_delegations = [
     "stacksets.cloudformation.amazonaws.com",
-    "fms.amazonaws.com"
+    "fms.amazonaws.com",
+    # cloudtrail.amazonaws.com is handled by the dedicated aws_cloudtrail_organization_delegated_admin_account
+    # resource below. Registering it through the generic Organizations API also implicitly registers the
+    # CloudTrail delegated admin, which then conflicts with the explicit CloudTrail resource.
+    "cloudtrail.amazonaws.com"
   ]
   common_delegations = [for delegation in var.preprocessed_data.delegations :
     {
@@ -300,7 +304,7 @@ locals {
   cloudtrail_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "cloudtrail.amazonaws.com"][0], null)
 
   # Skip if CloudTrail delegation already exists (was registered in a prior run, manually,
-  # or implicitly). The existing_delegation_keys set is populated by the data source above.
+  # or by another tool). The existing_delegation_keys set is populated by the data source above.
   cloudtrail_already_registered = local.cloudtrail_delegation && contains(
     local.existing_delegation_keys,
     "${local.cloudtrail_admin_account_id}/cloudtrail.amazonaws.com"
@@ -311,5 +315,4 @@ resource "aws_cloudtrail_organization_delegated_admin_account" "cloudtrail" {
   count = local.cloudtrail_delegation && local.is_primary_region && !local.cloudtrail_already_registered ? 1 : 0
 
   account_id = local.cloudtrail_admin_account_id
-  depends_on = [aws_organizations_delegated_administrator.delegations]
 }
