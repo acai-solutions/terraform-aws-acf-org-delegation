@@ -298,10 +298,17 @@ resource "aws_vpc_ipam_organization_admin_account" "ipam" {
 locals {
   cloudtrail_delegation       = contains([for d in var.preprocessed_data.delegations : d.service_principal], "cloudtrail.amazonaws.com")
   cloudtrail_admin_account_id = try([for d in var.preprocessed_data.delegations : d.target_account_id if d.service_principal == "cloudtrail.amazonaws.com"][0], null)
+
+  # Skip if CloudTrail delegation already exists (was registered in a prior run, manually,
+  # or implicitly). The existing_delegation_keys set is populated by the data source above.
+  cloudtrail_already_registered = local.cloudtrail_delegation && contains(
+    local.existing_delegation_keys,
+    "${local.cloudtrail_admin_account_id}/cloudtrail.amazonaws.com"
+  )
 }
 
 resource "aws_cloudtrail_organization_delegated_admin_account" "cloudtrail" {
-  count = local.cloudtrail_delegation && local.is_primary_region ? 1 : 0
+  count = local.cloudtrail_delegation && local.is_primary_region && !local.cloudtrail_already_registered ? 1 : 0
 
   account_id = local.cloudtrail_admin_account_id
   depends_on = [aws_organizations_delegated_administrator.delegations]
