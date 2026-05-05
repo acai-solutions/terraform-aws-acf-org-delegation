@@ -26,9 +26,10 @@ module "create_provisioner" {
   }
 }
 
+# Primary region provider, assuming the CI/CD provisioner role created above.
 provider "aws" {
   region = var.aws_region
-  alias  = "cicd_provisioner"
+  alias  = "org_mgmt_primary"
   assume_role {
     role_arn = module.create_provisioner.iam_role_arn
   }
